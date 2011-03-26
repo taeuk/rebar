@@ -48,7 +48,8 @@
          get_deprecated_global/3,
          get_deprecated_list/4, get_deprecated_list/5,
          get_deprecated_local/4, get_deprecated_local/5,
-         delayed_halt/1]).
+         delayed_halt/1,
+         test_dir/0, ebin_dir/0]).
 
 -include("rebar.hrl").
 
@@ -309,6 +310,12 @@ delayed_halt(Code) ->
                     receive after infinity -> ok end
             end
     end.
+
+test_dir() ->
+    filename:join(rebar_utils:get_cwd(), ?TEST_DIR).
+
+ebin_dir() ->
+    filename:join(rebar_utils:get_cwd(), "ebin").
 
 %% ====================================================================
 %% Internal functions
