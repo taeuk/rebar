@@ -91,13 +91,27 @@ new(Opts0, ConfName) ->
     #config { dir = Dir, opts = Opts }.
 
 get(Config, Key, Default) ->
-    proplists:get_value(Key, Config#config.opts, Default).
+    Res = proplists:get_value(Key, Config#config.opts, Default),
+    %% [-- DEBUG code
+    IExist = proplists:is_defined(Key, inheritable_opts(Config#config.opts)),
+    LExist = proplists:is_defined(Key, local_opts(Config#config.opts)),
+    Cwd = rebar_utils:get_cwd(),
+    IsBaseDir = Cwd == rebar_config:get_global(base_dir, undefined),
+    case {IExist, LExist, IsBaseDir} of
+        {true, false, false} ->
+            ?CONSOLE("CONFTEST: using inherited ~p (default: ~p):~n~p~n",
+                     [Key, Default, Res]);
+        _ ->
+            ok
+    end,
+    %% DEBUG CODE --]
+    Res.
 
 get_list(Config, Key, Default) ->
     get(Config, Key, Default).
 
 get_local(Config, Key, Default) ->
-    proplists:get_value(Key, local_opts(Config#config.opts, []), Default).
+    proplists:get_value(Key, local_opts(Config#config.opts), Default).
 
 get_all(Config, Key) ->
     proplists:get_all_values(Key, Config#config.opts).
@@ -136,9 +150,10 @@ consult_file(File) ->
     ?DEBUG("Consult config file ~p~n", [File]),
     file:consult(File).
 
-local_opts([], Acc) ->
-    lists:reverse(Acc);
-local_opts([local | _Rest], Acc) ->
-    lists:reverse(Acc);
-local_opts([Item | Rest], Acc) ->
-    local_opts(Rest, [Item | Acc]).
+%% [LOCAL_OPTS, local, INHERITABLE_OPTS]
+
+local_opts(Opts) ->
+    lists:takewhile(fun(local) -> false; (_) -> true end, Opts).
+
+inheritable_opts(Opts) ->
+    tl(lists:dropwhile(fun(local) -> false; (_) -> true end, Opts)).
