@@ -166,14 +166,20 @@ boot_files(TargetDir, Ver, Name) ->
                    filename:join(["start.boot"]),
                    filename:join([".", ?TMP, "releases", Ver, Name ++ ".boot"]))
     end,
+    ok = rebar_file_utils:cp_r(
+                [filename:join([TargetDir, "releases", Ver, "*.config"])],
+                filename:join([".", ?TMP, "releases", Ver])),
+    ok = rebar_file_utils:cp_r(
+                [filename:join([TargetDir, "releases", Ver, "*.crt"])],
+                filename:join([".", ?TMP, "releases", Ver])),
+    ok = rebar_file_utils:cp_r(
+                [filename:join([TargetDir, "releases", Ver, "*.key"])],
+                filename:join([".", ?TMP, "releases", Ver])),
+
     {ok, _} =
         file:copy(
           filename:join([TargetDir, "releases", Ver, "start_clean.boot"]),
           filename:join([".", ?TMP, "releases", Ver, "start_clean.boot"])),
-
-    {ok, _} = file:copy(
-                filename:join([TargetDir, "releases", Ver, "sys.config"]),
-                filename:join([".", ?TMP, "releases", Ver, "sys.config"])),
 
     {ok, _} = file:copy(
                 filename:join([TargetDir, "releases", Ver, "vm.args"]),
